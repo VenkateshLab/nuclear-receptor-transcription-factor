@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # Reference genome file
-REFERENCE="/home/manoj/Desktop/Cut_run/Reference/default/0f10d83b1050c08dd53189986f60970b92a315aa7a16a6f1.fa"
+REFERENCE="Reference/default/0f10d83b1050c08dd53189986f60970b92a315aa7a16a6f1.fa"
 
 # Ensure the reference exists
 if [ ! -f "$REFERENCE" ]; then
