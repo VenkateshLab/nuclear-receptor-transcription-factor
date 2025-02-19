@@ -1,0 +1,16 @@
+1_S23_R1.fastq.gz
+1_S23_R2.fastq.gz
+2_S24_R1.fastq.gz
+2_S24_R2.fastq.gz
+4_S25_R1.fastq.gz
+4_S25_R2.fastq.gz
+5_S26_R1.fastq.gz
+5_S26_R2.fastq.gz
+6_S27_R1.fastq.gz
+6_S27_R2.fastq.gz
+7_S28_R1.fastq.gz
+7_S28_R2.fastq.gz
+8_S29_R1.fastq.gz
+8_S29_R2.fastq.gz
+9_S30_R1.fastq.gz
+9_S30_R2.fastq.gz

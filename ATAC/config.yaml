@@ -1,0 +1,36 @@
+#-------------------------------------------------------------------------#
+#-------------------------- TOBIAS input data ----------------------------#
+#-------------------------------------------------------------------------#
+
+data:
+  P0: [/home/manoj/Documents/TOBIAS_snakemake/Data/P0.bam]
+  P4: [/home/manoj/Documents/TOBIAS_snakemake/Data/P4.bam]       
+  P7: [/home/manoj/Documents/TOBIAS_snakemake/Data/P7.bam]
+  #Adult: [Data/Adult_merged.bam]
+  
+run_info:
+  organism: mouse                           #mouse/human/zebrafish (used for macs to set "--gsize"; alternatively, set --gsize in macs parameters below)
+  fasta: /home/manoj/Documents/anisha/DRG_simone/Ref/mm10.fa                  #.fasta-file containing organism genome. NOTE: must be uncompressed .fa or bgzip compressed compatible with samtools
+  blacklist: /home/manoj/Documents/anisha/DRG_simone/Ref/mm10_blacklist.bed             #.bed-file containing blacklisted regions
+  gtf: /home/manoj/Documents/anisha/DRG_simone/Ref/mm10_v2.gtf                       #.gtf-file for annotation of peaks. NOTE: must be uncompressed .gtf
+  motifs: /home/manoj/Documents/anisha/DRG_simone/Ref/Jaspar/*          #motifs (directory with files or individual files in MEME/JASPAR/PFM format)
+  output: P0_P4_P7                #output directory 
+  #peaks: data/merged_peaks_annotated.bed   #optional; pre-calculated annotated peaks
+  #peaks_header: data/merged_peaks_annotated_header.txt #optional; header for pre-calculated annotated peaks
+
+#Flags for parts of pipeline to include/exclude (all are True by default)
+flags:
+  plot_comparison: True #True/False
+  plot_correction: True
+  plot_venn: True
+  coverage: True
+  wilson: True
+
+#-------------------------------------------------------------------------#
+#----------------------- Default module parameters -----------------------#
+#-------------------------------------------------------------------------#
+
+macs: "--nomodel --shift -100 --extsize 200 --broad"
+atacorrect: ""
+footprinting: ""
+bindetect: ""
