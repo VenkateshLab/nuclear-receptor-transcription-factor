@@ -1,0 +1,159 @@
+---
+title: "scRNA_NR2F1_F6"
+author: "Manoj"
+date: "2024-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(Seurat)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(scCustomize)
+```
+
+```{r}
+NR2F1_F6 = Read10X(data.dir = "Data/Nr2f1_Nr2f6_7dpi_complete/")
+NR2F1_F6_data = CreateSeuratObject(counts = NR2F1_F6, project = "NR2F1_F6",min.cells = 3, min.features = 200)
+NR2F1_F6_data
+```
+
+
+```{r}
+VlnPlot(NR2F1_F6_data, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2)
+```
+
+```{r}
+NR2F1_F6_data_QC_filtered =subset(NR2F1_F6_data, subset = nFeature_RNA > 200 & nFeature_RNA < 6500)
+NR2F1_F6_data_QC_filtered 
+```
+
+```{r}
+NR2F1_F6_data_QC_filtered =NormalizeData(NR2F1_F6_data_QC_filtered, normalization.method = "LogNormalize", scale.factor = 10000)
+NR2F1_F6_data_QC_filtered =FindVariableFeatures(NR2F1_F6_data_QC_filtered, selection.method = "vst", nfeatures = 2000)
+all.genes_NR2F1_F6 =rownames(NR2F1_F6_data_QC_filtered)
+NR2F1_F6_data_QC_filtered =ScaleData(NR2F1_F6_data_QC_filtered, features = all.genes_NR2F1_F6)
+```
+```{r}
+NR2F1_F6_data_QC_filtered = RunPCA(NR2F1_F6_data_QC_filtered, npcs = 50, verbose = FALSE)
+
+NR2F1_F6_data_QC_filtered = RunUMAP(NR2F1_F6_data_QC_filtered, reduction = "pca", dims = 1:30)
+
+NR2F1_F6_data_QC_filtered = FindNeighbors(NR2F1_F6_data_QC_filtered, reduction = "pca", dims = 1:30)
+
+NR2F1_F6_data_QC_filtered = FindClusters(NR2F1_F6_data_QC_filtered, resolution = 0.2)
+
+DefaultAssay(NR2F1_F6_data_QC_filtered) = "RNA"
+
+NR2F1_F6_data_QC_filtered
+```
+```{r}
+DimPlot(NR2F1_F6_data_QC_filtered, label = TRUE, pt.size = 1, 
+        label.size = 0, group.by =  "seurat_clusters", cols = c("#FFB65A","#BE7FBE","#D9D8DA","#979696","#636362","#DF9DD5","#CE6EBD","#7C4173","#E8969C","#AD484A","#E5CB94","#f68038","#CDDB9E","#8CA252","#E63946","#A8DADC","#1D3557","#A2D2FF","#FFB65A"),alpha = 0.3,
+        order = FALSE
+)
+DimPlot_scCustom(NR2F1_F6_data_QC_filtered,pt.size = 1,label = T,label.size = 3,group.by = "seurat_clusters",alpha=0.2)
+```
+
+```{r}
+saveRDS(NR2F1_F6_data_QC_filtered,"NR3F1_F6_data.rds")
+```
+
+```{r}
+library(Seurat)
+library(ShinyCell)
+
+NR2F1_NR2F6 = readRDS("NR3F1_F6_data.rds")
+scConf = createConfig(NR2F1_NR2F6)
+makeShinyApp(NR2F1_NR2F6, scConf, gene.mapping = TRUE,
+             shiny.title = "NR2F1_NR2F6") 
+```
+
+
+```{r}
+marker_gene = read.csv("Data/Dotplot.csv")
+
+top_markers = marker_gene$Marker
+
+DotPlot(NR2F1_F6_data_QC_filtered, features = top_markers)
+
+library(RColorBrewer)
+pal = brewer.pal(10, "Spectral")
+pal_inverted = rev(pal)
+plot_list_NR2F1_F6 = Clustered_DotPlot(NR2F1_F6_data_QC_filtered, features = top_markers, colors_use_exp = pal_inverted, exp_color_max = 2, exp_color_min = -1, exp_color_middle = 0, show_parent_dend_line = F, cluster_feature = F, cluster_ident = F, x_lab_rotate = 90, color_seed = 1, row_label_size = 12, column_label_size = 12, flip = T)
+
+png("dimplot_NR2F1_F6_7dpi_Marker_gene_Murray.png", width = 12, height = 5, units =  "in",res =  300)
+plot_list_NR2F1_F6[[2]]
+dev.off()
+```
+
+```{r}
+marker_gene = read.csv("Data/Marker_gene.csv")
+
+top_markers = marker_gene$Marker
+
+DotPlot(NR2F1_F6_data_QC_filtered, features = top_markers)
+
+library(RColorBrewer)
+pal = brewer.pal(10, "Spectral")
+pal_inverted = rev(pal)
+plot_list_NR2F1_F6 = Clustered_DotPlot(NR2F1_F6_data_QC_filtered, features = top_markers, colors_use_exp = pal_inverted, exp_color_max = 2, exp_color_min = -1, exp_color_middle = 0, show_parent_dend_line = F, cluster_feature = F, cluster_ident = F, x_lab_rotate = 90, color_seed = 1, row_label_size = 12, column_label_size = 12, flip = T)
+png("dimplot_NR2F1_F6_7dpi_Marker_gene.png", width = 12, height = 5, units =  "in",res =  300)
+plot_list_NR2F1_F6[[2]]
+dev.off()
+```
+
+
+```{r}
+pbmc.markers <- FindAllMarkers(NR2F1_F6_data_QC_filtered, only.pos = TRUE)
+pbmc.markers %>%
+    group_by(cluster) %>%
+    dplyr::filter(avg_log2FC > 0.5) 
+```
+
+```{r}
+FeaturePlot_scCustom(seurat_object = NR2F1_F6_data_QC_filtered, pt.size = 1, features = c("AAV-GFP","AAV-Nr2f1","AAV-Nr2f6","Etv1","Crym","Satb2","Ccnd2","Spata16"), order = T) & NoAxes() + theme(axis.text = element_text(size = 20), text = element_text(size = 20))
+```
+```{r}
+gene_list=c("AAV-GFP","AAV-Nr2f1","AAV-Nr2f6","Etv1","Crym","Satb2","Ccnd2","Spata16")
+plot_list_GFP = Clustered_DotPlot(NR2F1_F6_data_QC_filtered, features = gene_list, colors_use_exp = pal_inverted, exp_color_max = 2, exp_color_min = -1, exp_color_middle = 0, show_parent_dend_line = F, cluster_feature = F, cluster_ident = F, x_lab_rotate = 90, color_seed = 1, row_label_size = 12, column_label_size = 12, flip = T)
+```
+
+```{r}
+Plot_Density_Custom(seurat_object = NR2F1_F6_data_QC_filtered,features = c("AAV-GFP","AAV-Nr2f1","AAV-Nr2f6","Etv1","Crym","Satb2","Ccnd2","Spata16") ) 
+ggsave("Density_plot_NR2F1_F6.png",width = 8, height = 7, units =  "in",dpi = 300)
+```
+
+
+```{r}
+NR2F1_F6_data_QC_filtered=readRDS("NR3F1_F6_data.rds")
+```
+
+```{r}
+DimPlot_scCustom(NR2F1_F6_data_QC_filtered,pt.size = 1,
+                 label = T,
+                 label.size = 6,
+                 group.by = "seurat_clusters",
+                 alpha=0.2) & 
+  NoAxes() + theme(axis.text = element_text(size = 20), text = element_text(size = 20))
+
+ggsave("NR2F1_F6_cluster.png",width = 8, height = 7, units =  "in",dpi = 300)
+
+FeaturePlot_scCustom(
+  seurat_object = NR2F1_F6_data_QC_filtered, alpha_exp = 0.2,
+  features = c("AAV-GFP", "AAV-Nr2f1", "AAV-Nr2f6", "Etv1", "Crym", "Satb2", "Ccnd2", "Spata16"),
+  pt.size = 1,
+  max.cutoff = 2,
+  order = TRUE
+) & NoAxes() + theme(axis.text = element_text(size = 20), text = element_text(size = 20))
+
+ggsave("NR2F1_F6_Feature_plot.png",width = 8, height = 7, units =  "in",dpi = 300)
+
+```
+
