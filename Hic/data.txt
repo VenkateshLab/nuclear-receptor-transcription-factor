@@ -1,0 +1,2 @@
+sample_1_trimmed_R1.fastq.gz
+sample_1_trimmed_R2.fastq.gz
