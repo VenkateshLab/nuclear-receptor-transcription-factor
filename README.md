@@ -9,8 +9,30 @@ This pipeline provides end-to-end analysis workflows for:
 - **🧬 ATAC-seq**: Chromatin accessibility analysis using TOBIAS
 - **🔬 Single-cell RNA-seq**: Cell Ranger and Seurat-based analysis
 - **🌐 Hi-C**: 3D chromatin structure analysis using Homer
-- **📊 Bulk RNA-seq**: STAR alignment and feature counting
+- **📊 Bulk Ribo-seq**: STAR alignment and feature counting
 - **✅ Quality Control**: FastQC and FastP preprocessing
+
+### **Dataset Information**
+
+**Project ID**: `PRJNA63471`
+
+This pipeline was developed to analyze bulk ATAC-seq data downloaded from the ENCODE dataset, covering developmental time points from **E11.5 (embryonic day 11.5) to adult P36 (postnatal day 36)**. The analysis focuses on chromatin accessibility changes during mouse development and maturation.
+
+### **Developmental Timeseries Design**
+
+The dataset encompasses critical developmental stages:
+
+| Stage | Description | Developmental Context |
+|-------|-------------|----------------------|
+| **E11.5-E18.5** | Embryonic development | Organogenesis, tissue specification |
+| **P0** | Birth | Transition to extrauterine life |
+| **P36** | Adult | Mature, fully developed organism |
+
+This timeseries allows for the identification of:
+- **Dynamic chromatin accessibility** changes during development
+- **Transcription factor binding** dynamics across developmental stages
+- **Regulatory elements** active at specific developmental timepoints
+- **Gene regulatory networks** controlling developmental transitions
 
 ---
 
@@ -247,7 +269,7 @@ Rscript -e "rmarkdown::render('sc_RNA.Rmd')"
 - TAD and loop calling results
 - Hi-C interaction matrices
 
-### **5. Bulk RNA-seq Workflow**
+### **5. Ribo-seq Workflow**
 
 ```bash
 # Step 1: STAR alignment
@@ -272,9 +294,12 @@ Rscript -e "rmarkdown::render('sc_RNA.Rmd')"
 
 ```yaml
 data:
-  P0: [/path/to/P0.bam]
-  P4: [/path/to/P4.bam]
-  P7: [/path/to/P7.bam]
+  E11.5: [/path/to/E11.5.bam]    # Embryonic day 11.5
+  E12.5: [/path/to/E12.5.bam]    # Embryonic day 12.5
+  P0: [/path/to/P0.bam]          # Postnatal day 0
+  P4: [/path/to/P4.bam]          # Postnatal day 4
+  P7: [/path/to/P7.bam]          # Postnatal day 7
+  P36: [/path/to/P36.bam]        # Adult (postnatal day 36)
 
 run_info:
   organism: mouse
@@ -282,7 +307,7 @@ run_info:
   blacklist: /path/to/mm10_blacklist.bed
   gtf: /path/to/mm10_v2.gtf
   motifs: /path/to/Jaspar/*
-  output: P0_P4_P7
+  output: Developmental_timeseries  # Output directory for timeseries analysis
 ```
 
 ### **Cell Ranger Parameters**
@@ -295,14 +320,38 @@ run_info:
 
 ## **Input File Requirements**
 
+### **Data Source**
+
+The bulk ATAC-seq data for this analysis was downloaded from the **ENCODE Project**:
+- **Project ID**: `PRJNA63471`
+- **Developmental stages**: E11.5, E12.5, E13.5, E14.5, E15.5, E16.5, E18.5, P0, P4, P7, P14, P21, P36
+- **Species**: Mouse (*Mus musculus*)
+- **Assay**: ATAC-seq (Assay for Transposase-Accessible Chromatin using sequencing)
+
+### **Data Download Example**
+
+```bash
+# Download ENCODE data using wget (example)
+wget https://www.encodeproject.org/files/ENCFF123456/@@download/ENCFF123456.fastq.gz
+# Or use ENCODE portal: https://www.encodeproject.org/
+
+# For SRA data download
+prefetch PRJNA63471
+fastq-dump --gzip --split-files SRR*
+```
+
 ### **File Structure**
 
 ```
 project/
 ├── data.txt                     # Sample list
 ├── Raw_data/                    # Input FASTQ files
-│   ├── sample_1_R1.fastq.gz
-│   ├── sample_1_R2.fastq.gz
+│   ├── E11.5_R1.fastq.gz       # Embryonic day 11.5
+│   ├── E11.5_R2.fastq.gz
+│   ├── P0_R1.fastq.gz          # Postnatal day 0
+│   ├── P0_R2.fastq.gz
+│   ├── P36_R1.fastq.gz         # Adult (postnatal day 36)
+│   ├── P36_R2.fastq.gz
 │   └── ...
 ├── Reference/                   # Reference genomes
 ├── config.yaml                  # TOBIAS configuration
@@ -312,15 +361,24 @@ project/
 ### **Sample Naming Convention**
 
 FASTQ files should follow the pattern:
-- `{sample}_R1.fastq.gz` (forward reads)
-- `{sample}_R2.fastq.gz` (reverse reads)
+- `{developmental_stage}_R1.fastq.gz` (forward reads)
+- `{developmental_stage}_R2.fastq.gz` (reverse reads)
 
-Example:
+**Developmental Stage Examples:**
 ```
-S1_R1.fastq.gz
-S1_R2.fastq.gz
-C41_S3_L004_R1_001.fastq.gz
-C41_S3_L004_R2_001.fastq.gz
+# Embryonic stages
+E11.5_R1.fastq.gz / E11.5_R2.fastq.gz
+E12.5_R1.fastq.gz / E12.5_R2.fastq.gz
+E18.5_R1.fastq.gz / E18.5_R2.fastq.gz
+
+# Postnatal stages  
+P0_R1.fastq.gz / P0_R2.fastq.gz
+P4_R1.fastq.gz / P4_R2.fastq.gz
+P36_R1.fastq.gz / P36_R2.fastq.gz
+
+# Alternative naming (with sample IDs)
+S1_R1.fastq.gz / S1_R2.fastq.gz
+C41_S3_L004_R1_001.fastq.gz / C41_S3_L004_R2_001.fastq.gz
 ```
 
 ---
@@ -410,8 +468,9 @@ The pipeline generates various plots:
 
 ## **Citation**
 
-If you use this pipeline, please cite the following tools:
+If you use this pipeline, please cite the following tools and data sources:
 
+### **Tools**
 ```bibtex
 @article{seurat2021,
   title={Integrated analysis of multimodal single-cell data},
@@ -427,6 +486,24 @@ If you use this pipeline, please cite the following tools:
   year={2020}
 }
 ```
+
+### **Data Source**
+```bibtex
+@article{encode2012,
+  title={An integrated encyclopedia of DNA elements in the human genome},
+  author={ENCODE Project Consortium},
+  journal={Nature},
+  volume={489},
+  number={7414},
+  pages={57--74},
+  year={2012}
+}
+```
+
+**Data Attribution**: 
+- Project ID: PRJNA63471
+- Source: ENCODE Project Portal (https://www.encodeproject.org/)
+- Developmental timeseries: E11.5 to P36 mouse ATAC-seq data
 
 ---
 
